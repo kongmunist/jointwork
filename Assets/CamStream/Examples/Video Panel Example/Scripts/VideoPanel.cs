@@ -12,9 +12,7 @@ using YoloV4Tiny;
 public class VideoPanel : MonoBehaviour
 {
     public MeshRenderer meshRenderer;
-
-    [SerializeField] ResourceSet _resources = null;
-
+    
     public void SetResolution(int width, int height)
     {
         transform.localScale = new Vector3(0.4f, 0.4f * height / width);

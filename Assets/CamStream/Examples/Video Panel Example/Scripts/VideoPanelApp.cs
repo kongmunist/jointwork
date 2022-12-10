@@ -27,10 +27,6 @@ using Windows.Perception.Spatial;
 /// </summary>
 public class VideoPanelApp : MonoBehaviour
 {
-        #region Editable attributes
-    [SerializeField] ResourceSet _resources = null;
-    #endregion
-    
     byte[] _latestImageBytes;
     HoloLensCameraStream.Resolution _resolution;
 
@@ -52,7 +48,10 @@ public class VideoPanelApp : MonoBehaviour
 
     // [SerializeField] ImageSource _source = null;
     // [SerializeField, Range(0, 1)] float _threshold = 0.5f;
-
+    #region Editable attributes
+    [SerializeField] ResourceSet _resources = null;
+    #endregion
+    
     public static string[] _labels = new[]
     {
         "Plane", "Bicycle", "Bird", "Boat",
@@ -262,12 +261,12 @@ public class VideoPanelApp : MonoBehaviour
                 Enqueue(() => SetText("vidtex is null even after init"));
             } else{
                 vidtex.LoadRawTextureData(_latestImageBytes);
-                vidtex.Apply();
+                // vidtex.Apply();
                 _detector.ProcessImage(vidtex, .4f);
 
                 String allpreds = "";
                 foreach (var d in _detector.Detections)
-                {   
+                {  
                     allpreds += _labels[d.classIndex] + " " + d.score + "\n";
                 }
                 Enqueue(() => SetText(allpreds));
