@@ -5,10 +5,15 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using Klak.TestTools;
+using YoloV4Tiny;
+
 
 public class VideoPanel : MonoBehaviour
 {
     public MeshRenderer meshRenderer;
+
+    [SerializeField] ResourceSet _resources = null;
 
     public void SetResolution(int width, int height)
     {

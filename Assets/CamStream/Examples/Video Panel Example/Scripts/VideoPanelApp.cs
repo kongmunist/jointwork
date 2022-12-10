@@ -7,6 +7,9 @@ using UnityEngine;
 using System;
 using HoloLensCameraStream;
 using System.Collections.Generic;
+using Klak.TestTools;
+using YoloV4Tiny;
+
 
 #if WINDOWS_UWP && XR_PLUGIN_OPENXR
 using Windows.Perception.Spatial;
@@ -24,6 +27,10 @@ using Windows.Perception.Spatial;
 /// </summary>
 public class VideoPanelApp : MonoBehaviour
 {
+        #region Editable attributes
+    [SerializeField] ResourceSet _resources = null;
+    #endregion
+    
     byte[] _latestImageBytes;
     HoloLensCameraStream.Resolution _resolution;
 
@@ -39,6 +46,26 @@ public class VideoPanelApp : MonoBehaviour
 #endif
 
     Queue<Action> _mainThreadActions;
+
+    // Stuff from yolov4
+    ObjectDetector _detector;
+
+    // [SerializeField] ImageSource _source = null;
+    // [SerializeField, Range(0, 1)] float _threshold = 0.5f;
+
+    public static string[] _labels = new[]
+    {
+        "Plane", "Bicycle", "Bird", "Boat",
+        "Bottle", "Bus", "Car", "Cat",
+        "Chair", "Cow", "Table", "Dog",
+        "Horse", "Motorbike", "Person", "Plant",
+        "Sheep", "Sofa", "Train", "TV"
+    };
+
+    Texture2D vidtex;
+    // [SerializeField] Marker _markerPrefab = null;
+
+
 
     void Start()
     {
@@ -74,7 +101,17 @@ public class VideoPanelApp : MonoBehaviour
 
         _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
         _videoPanelUI.meshRenderer.transform.localScale = new Vector3(1, -1, 1);
+
+        // Create detector objects
+        _detector = new ObjectDetector(_resources);
+        vidtex = new Texture2D(2,2);
+        // for (var i = 0; i < _markers.Length; i++)
+        //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
     }
+
+    void OnDisable()
+      => _detector.Dispose();
+
 
     private void Update()
     {
@@ -215,11 +252,30 @@ public class VideoPanelApp : MonoBehaviour
             unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 #endif
 
-            Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
-            if (_displayText != null)
-            {
-                _displayText.text = "Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength;
+            // Loading bytes into texture so we can feed it to th emodel
+            
+            if (vidtex == null){
+                vidtex = new Texture2D(2,2);
             }
+
+            if (vidtex == null){
+                Enqueue(() => SetText("vidtex is null even after init"));
+            } else{
+                vidtex.LoadRawTextureData(_latestImageBytes);
+                vidtex.Apply();
+                _detector.ProcessImage(vidtex, .4f);
+
+                String allpreds = "";
+                foreach (var d in _detector.Detections)
+                {   
+                    allpreds += _labels[d.classIndex] + " " + d.score + "\n";
+                }
+                Enqueue(() => SetText(allpreds));
+            }
+
+            Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
+            // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
+
         });
 
         sample.Dispose();
@@ -229,7 +285,8 @@ public class VideoPanelApp : MonoBehaviour
     {
         if (_displayText != null)
         {
-            _displayText.text += text + "\n";
+            // _displayText.text += text + "\n";
+            _displayText.text = text;
         }
     }
 }
