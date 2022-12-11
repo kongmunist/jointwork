@@ -12,7 +12,7 @@ using YoloV4Tiny;
 public class VideoPanel : MonoBehaviour
 {
     public MeshRenderer meshRenderer;
-    
+
     public void SetResolution(int width, int height)
     {
         transform.localScale = new Vector3(0.4f, 0.4f * height / width);
@@ -26,5 +26,10 @@ public class VideoPanel : MonoBehaviour
         var texture = meshRenderer.sharedMaterial.mainTexture as Texture2D;
         texture.LoadRawTextureData(image); //TODO: Should be able to do this: texture.LoadRawTextureData(pointerToImage, 1280 * 720 * 4);
         texture.Apply();
+    }
+
+    public void setTexture(Texture2D texture)
+    {
+        meshRenderer.sharedMaterial.mainTexture = texture;
     }
 }

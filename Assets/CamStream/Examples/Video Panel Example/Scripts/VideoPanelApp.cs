@@ -237,7 +237,9 @@ public class VideoPanelApp : MonoBehaviour
 
         Enqueue(() =>
         {
-            _videoPanelUI.SetBytes(_latestImageBytes);
+            vidtex.LoadRawTextureData(_latestImageBytes);
+            // _videoPanelUI.SetBytes(_latestImageBytes);
+            _videoPanelUI.setTexture(vidtex);
 
 #if XR_PLUGIN_WINDOWSMR || XR_PLUGIN_OPENXR
             // It appears that the Legacy built-in XR environment automatically applies the Holelens Head Pose to Unity camera transforms,
