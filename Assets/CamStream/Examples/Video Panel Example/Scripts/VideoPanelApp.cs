@@ -255,23 +255,7 @@ public class VideoPanelApp : MonoBehaviour
             unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
             unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 #endif
-
-            // Loading bytes into texture so we can feed it to th emodel
-            // _detector.ProcessImage(vidtex, .2f);
-            // if (vidtex == null){
-            //     vidtex = new Texture2D(2,2);
-            //     Debug.Log("vidtex is null, making new one");
-            // }
-
-            // if (vidtex == null){
-            //     Enqueue(() => SetText("vidtex is null even after init"));
-            // } else{
-            //     vidtex.LoadRawTextureData(_latestImageBytes);
-            //     // BGRA32 | 407040
-            //     // vidtex.Apply();
-            //     Debug.Log("vidtex is not null, loaded bytes");
-                
-                _detector.ProcessImage(vidtex, .5f);
+                _detector.ProcessImage(vidtex, .2f);
                 // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
 
                 String allpreds = "";
