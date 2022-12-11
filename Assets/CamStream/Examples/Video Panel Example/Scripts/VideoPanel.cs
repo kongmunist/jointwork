@@ -28,8 +28,10 @@ public class VideoPanel : MonoBehaviour
         texture.Apply();
     }
 
-    public void setTexture(Texture2D texture)
-    {
-        meshRenderer.sharedMaterial.mainTexture = texture;
+    public void setTexture(Texture2D targetTex)
+    {   
+        var texture = meshRenderer.sharedMaterial.mainTexture as Texture2D;
+        Graphics.CopyTexture(targetTex, texture);
+        // meshRenderer.sharedMaterial.mainTexture = texture;
     }
 }

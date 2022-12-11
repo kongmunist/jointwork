@@ -104,7 +104,7 @@ public class VideoPanelApp : MonoBehaviour
 
         // Create detector objects
         _detector = new ObjectDetector(_resources);
-        vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
+        // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
     }
@@ -181,6 +181,7 @@ public class VideoPanelApp : MonoBehaviour
         Enqueue(() => SetText("Configuring camera: " + _resolution.width + "x" + _resolution.height + "x" + cameraParams.frameRate + " | " + cameraParams.pixelFormat));
 
         Enqueue(() => _videoPanelUI.SetResolution(_resolution.width, _resolution.height));
+        vidtex = new Texture2D(_resolution.width ,_resolution.height, TextureFormat.BGRA32, false);
         videoCapture.StartVideoModeAsync(cameraParams, OnVideoModeStarted);
     }
 
@@ -238,6 +239,7 @@ public class VideoPanelApp : MonoBehaviour
         Enqueue(() =>
         {
             vidtex.LoadRawTextureData(_latestImageBytes);
+            vidtex.Apply();
             // _videoPanelUI.SetBytes(_latestImageBytes);
             _videoPanelUI.setTexture(vidtex);
 
@@ -255,7 +257,7 @@ public class VideoPanelApp : MonoBehaviour
 #endif
 
             // Loading bytes into texture so we can feed it to th emodel
-            
+            _detector.ProcessImage(vidtex, .2f);
             // if (vidtex == null){
             //     vidtex = new Texture2D(2,2);
             //     Debug.Log("vidtex is null, making new one");
@@ -282,8 +284,8 @@ public class VideoPanelApp : MonoBehaviour
             //     Enqueue(() => SetText(allpreds));
             // }
 
-            Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
-            // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
+            // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
+            // // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
 
         });
 
