@@ -49,6 +49,7 @@ public class VideoPanelApp : MonoBehaviour
     // [SerializeField] ImageSource _source = null;
     // [SerializeField, Range(0, 1)] float _threshold = 0.5f;
     #region Editable attributes
+    [SerializeField] ImageSource _source = null;
     [SerializeField] ResourceSet _resources = null;
     #endregion
     
@@ -103,7 +104,7 @@ public class VideoPanelApp : MonoBehaviour
 
         // Create detector objects
         _detector = new ObjectDetector(_resources);
-        vidtex = new Texture2D(2,2);
+        vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
     }
@@ -253,24 +254,31 @@ public class VideoPanelApp : MonoBehaviour
 
             // Loading bytes into texture so we can feed it to th emodel
             
-            if (vidtex == null){
-                vidtex = new Texture2D(2,2);
-            }
+            // if (vidtex == null){
+            //     vidtex = new Texture2D(2,2);
+            //     Debug.Log("vidtex is null, making new one");
+            // }
 
-            if (vidtex == null){
-                Enqueue(() => SetText("vidtex is null even after init"));
-            } else{
-                vidtex.LoadRawTextureData(_latestImageBytes);
-                // vidtex.Apply();
-                _detector.ProcessImage(vidtex, .4f);
+            // if (vidtex == null){
+            //     Enqueue(() => SetText("vidtex is null even after init"));
+            // } else{
+            //     vidtex.LoadRawTextureData(_latestImageBytes);
+            //     // BGRA32 | 407040
+            //     // vidtex.Apply();
+            //     Debug.Log("vidtex is not null, loaded bytes");
+                
+            //     _detector.ProcessImage(vidtex, .2f);
+            //     // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
 
-                String allpreds = "";
-                foreach (var d in _detector.Detections)
-                {  
-                    allpreds += _labels[d.classIndex] + " " + d.score + "\n";
-                }
-                Enqueue(() => SetText(allpreds));
-            }
+            //     String allpreds = "";
+            //     foreach (var d in _detector.Detections)
+            //     {  
+                    
+            //         allpreds += _labels[d.classIndex] + " " + d.score + "\n";
+            //     }
+            //     Debug.Log("allpreds: " + allpreds);
+            //     Enqueue(() => SetText(allpreds));
+            // }
 
             Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
             // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
