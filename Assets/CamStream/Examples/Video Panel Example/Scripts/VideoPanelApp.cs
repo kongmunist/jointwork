@@ -51,6 +51,7 @@ public class VideoPanelApp : MonoBehaviour
     #region Editable attributes
     [SerializeField] ImageSource _source = null;
     [SerializeField] ResourceSet _resources = null;
+    //[SerializeField] GameObject _worldparent = null;
     #endregion
     
     public static string[] _labels = new[]
@@ -64,7 +65,10 @@ public class VideoPanelApp : MonoBehaviour
 
     public GameObject[] _balls=new GameObject[4];
     public Color[] _colors=new Color[]{
-        Color.red, Color.green, Color.blue, Color.yellow
+        new Color(1,0,0,0.1f),
+        new Color(0,1,0,0.1f),
+        new Color(0,0,1,0.1f),
+        new Color(1,1,0,0.1f)
     };
 
     Texture2D vidtex;
@@ -79,23 +83,23 @@ public class VideoPanelApp : MonoBehaviour
         //Fetch a pointer to Unity's spatial coordinate system if you need pixel mapping
 #if WINDOWS_UWP
 
-#if XR_PLUGIN_WINDOWSMR
+    #if XR_PLUGIN_WINDOWSMR
 
-        _spatialCoordinateSystemPtr = UnityEngine.XR.WindowsMR.WindowsMREnvironment.OriginSpatialCoordinateSystem;
+            _spatialCoordinateSystemPtr = UnityEngine.XR.WindowsMR.WindowsMREnvironment.OriginSpatialCoordinateSystem;
 
-#elif XR_PLUGIN_OPENXR
+    #elif XR_PLUGIN_OPENXR
 
-        _spatialCoordinateSystem = Microsoft.MixedReality.OpenXR.PerceptionInterop.GetSceneCoordinateSystem(UnityEngine.Pose.identity) as SpatialCoordinateSystem;
+            _spatialCoordinateSystem = Microsoft.MixedReality.OpenXR.PerceptionInterop.GetSceneCoordinateSystem(UnityEngine.Pose.identity) as SpatialCoordinateSystem;
 
-#elif BUILTIN_XR
+    #elif BUILTIN_XR
 
-#if UNITY_2017_2_OR_NEWER
-        _spatialCoordinateSystemPtr = UnityEngine.XR.WSA.WorldManager.GetNativeISpatialCoordinateSystemPtr();
-#else
-        _spatialCoordinateSystemPtr = UnityEngine.VR.WSA.WorldManager.GetNativeISpatialCoordinateSystemPtr();
-#endif
+        #if UNITY_2017_2_OR_NEWER
+                _spatialCoordinateSystemPtr = UnityEngine.XR.WSA.WorldManager.GetNativeISpatialCoordinateSystemPtr();
+        #else
+                _spatialCoordinateSystemPtr = UnityEngine.VR.WSA.WorldManager.GetNativeISpatialCoordinateSystemPtr();
+        #endif
 
-#endif
+    #endif
 
 #endif
 
@@ -113,6 +117,9 @@ public class VideoPanelApp : MonoBehaviour
             _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             var ballrender = _balls[i].GetComponent<Renderer>();
             ballrender.material.SetColor("_Color", _colors[i]);
+            ballrender.transform.localScale = new Vector3(0.1f,0.1f,0.1f);
+            // Set parent into world coordinates
+            _balls[i].transform.parent = null;
         }
         // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
@@ -208,6 +215,15 @@ public class VideoPanelApp : MonoBehaviour
         Enqueue(() => SetText("Video capture started."));
     }
 
+
+
+
+
+
+
+
+    bool setPosition = false;
+
     void OnFrameSampleAcquired(VideoCaptureSample sample)
     {
         lock (_mainThreadActions)
@@ -259,37 +275,49 @@ public class VideoPanelApp : MonoBehaviour
             // Here the cameraToWorldMatrix is applied to the camera transform as an alternative to Head Pose,
             // so the position of the displayed video panel is significantly misaligned. If you want to apply a more accurate Head Pose, use MRTK.
 
-            // Camera unityCamera = Camera.main;
-            // Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
-            // Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
-            // unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
-            // unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
+           
+                Camera unityCamera = Camera.main;
+                Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
+                Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
+                unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
+                unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 
-            // // localToWorld mulitplied
-            // float distance = -1.0F;
-            // Vector3 p = localToWorldMatrix.MultiplyPoint(new Vector3(0, 0, distance));
-            // _balls[0].transform.position = p;
-            // // Gizmos.color = Color.red;
-            // // Gizmos.DrawSphere(p, 1);
-            // Debug.Log("drew balls: " + p);
+                // localToWorld mulitplied
+                // float distance = 1.0F;
+                // Vector3 p = cameraToWorldMatrix.MultiplyPoint(new Vector3(0, 0, distance));
+                // _balls[0].transform.position = p;
+                // // Gizmos.color = Color.red;
+                // // Gizmos.DrawSphere(p, 1);
+                // Debug.Log("drew balls: " + p);
 
-//     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
-            Vector3 pp = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-            Enqueue(() => SetText(pp.ToString()));
-            _balls[1].transform.position = pp;
-            // Gizmos.color = Color.green;
-            // Gizmos.DrawSphere(pp, 1);
-            Debug.Log("pp: " + pp);
-
-            // Drawing static sphere in user face
-            _balls[2].transform.position = Camera.main.transform.position + Camera.main.transform.forward * 2;
-            // Gizmos.color = Color.blue;
-            // // Gizmos.DrawSphere(Camera.main.transform.position, 1);
-            // Gizmos.DrawSphere(Camera.main.transform.position + Camera.main.transform.forward * 2, 1);
+    //     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
+            if (!setPosition){
+                Vector3 pp = LocatableCameraUtils.PixelCoordToWorldCoord(localToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+                Enqueue(() => SetText(pp.ToString()));
+                _balls[1].transform.position = pp;
+                // Gizmos.color = Color.green;
+                // Gizmos.DrawSphere(pp, 1);
+                Debug.Log("pp: " + pp);
+                Debug.Log("Balls parent" + _balls[1].transform.parent);
 
 
-            // Draw static sphere in world
-            _balls[3].transform.position = new Vector3(0, 0, 1);
+                Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+                _balls[2].transform.position = pp2;
+                Debug.Log("pp: " + pp);
+
+
+                // Drawing static sphere in user face
+                // _balls[2].transform.position = Camera.main.transform.position + Camera.main.transform.forward * -1;
+                // Gizmos.color = Color.blue;
+                // // Gizmos.DrawSphere(Camera.main.transform.position, 1);
+                // Gizmos.DrawSphere(Camera.main.transform.position + Camera.main.transform.forward * 2, 1);
+
+
+                // Draw static sphere in world
+                _balls[3].transform.position = new Vector3(0, 0, 1);
+
+                setPosition = true;
+            }
             // Gizmos.color = Color.yellow;
             // Gizmos.DrawSphere(new Vector3(0, 0, 1), 1);
 // #endif
