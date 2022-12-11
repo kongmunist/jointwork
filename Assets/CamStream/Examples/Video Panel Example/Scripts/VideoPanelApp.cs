@@ -62,6 +62,11 @@ public class VideoPanelApp : MonoBehaviour
         "Sheep", "Sofa", "Train", "TV"
     };
 
+    public GameObject[] _balls=new GameObject[4];
+    public Color[] _colors=new Color[]{
+        Color.red, Color.green, Color.blue, Color.yellow
+    };
+
     Texture2D vidtex;
     // [SerializeField] Marker _markerPrefab = null;
 
@@ -104,6 +109,11 @@ public class VideoPanelApp : MonoBehaviour
 
         // Create detector objects
         _detector = new ObjectDetector(_resources);
+        for (var i = 0; i < _balls.Length; i++){
+            _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var ballrender = _balls[i].GetComponent<Renderer>();
+            ballrender.material.SetColor("_Color", _colors[i]);
+        }
         // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
@@ -243,29 +253,57 @@ public class VideoPanelApp : MonoBehaviour
             // _videoPanelUI.SetBytes(_latestImageBytes);
             _videoPanelUI.setTexture(vidtex);
 
-#if XR_PLUGIN_WINDOWSMR || XR_PLUGIN_OPENXR
+// #if XR_PLUGIN_WINDOWSMR || XR_PLUGIN_OPENXR
             // It appears that the Legacy built-in XR environment automatically applies the Holelens Head Pose to Unity camera transforms,
             // but not to the new XR system (XR plugin management) environment.
             // Here the cameraToWorldMatrix is applied to the camera transform as an alternative to Head Pose,
             // so the position of the displayed video panel is significantly misaligned. If you want to apply a more accurate Head Pose, use MRTK.
 
-            Camera unityCamera = Camera.main;
-            Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
-            Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
-            unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
-            unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
-#endif
-                _detector.ProcessImage(vidtex, .2f);
-                // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
+            // Camera unityCamera = Camera.main;
+            // Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
+            // Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
+            // unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
+            // unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 
-                String allpreds = "";
-                foreach (var d in _detector.Detections)
-                {  
+            // // localToWorld mulitplied
+            // float distance = -1.0F;
+            // Vector3 p = localToWorldMatrix.MultiplyPoint(new Vector3(0, 0, distance));
+            // _balls[0].transform.position = p;
+            // // Gizmos.color = Color.red;
+            // // Gizmos.DrawSphere(p, 1);
+            // Debug.Log("drew balls: " + p);
+
+//     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
+            Vector3 pp = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+            Enqueue(() => SetText(pp.ToString()));
+            _balls[1].transform.position = pp;
+            // Gizmos.color = Color.green;
+            // Gizmos.DrawSphere(pp, 1);
+            Debug.Log("pp: " + pp);
+
+            // Drawing static sphere in user face
+            _balls[2].transform.position = Camera.main.transform.position + Camera.main.transform.forward * 2;
+            // Gizmos.color = Color.blue;
+            // // Gizmos.DrawSphere(Camera.main.transform.position, 1);
+            // Gizmos.DrawSphere(Camera.main.transform.position + Camera.main.transform.forward * 2, 1);
+
+
+            // Draw static sphere in world
+            _balls[3].transform.position = new Vector3(0, 0, 1);
+            // Gizmos.color = Color.yellow;
+            // Gizmos.DrawSphere(new Vector3(0, 0, 1), 1);
+// #endif
+                // _detector.ProcessImage(vidtex, .2f);
+                // // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
+
+                // String allpreds = "";
+                // foreach (var d in _detector.Detections)
+                // {  
                     
-                    allpreds += _labels[d.classIndex] + " " + d.score + "\n";
-                }
-                Debug.Log("allpreds: " + allpreds);
-                Enqueue(() => SetText(allpreds));
+                //     allpreds += _labels[d.classIndex] + " " + d.score + "\n";
+                // }
+                // Debug.Log("allpreds: " + allpreds);
+                // Enqueue(() => SetText(allpreds));
             // }
 
             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
