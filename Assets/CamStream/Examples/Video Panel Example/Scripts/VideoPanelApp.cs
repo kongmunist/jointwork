@@ -257,7 +257,7 @@ public class VideoPanelApp : MonoBehaviour
 #endif
 
             // Loading bytes into texture so we can feed it to th emodel
-            _detector.ProcessImage(vidtex, .2f);
+            // _detector.ProcessImage(vidtex, .2f);
             // if (vidtex == null){
             //     vidtex = new Texture2D(2,2);
             //     Debug.Log("vidtex is null, making new one");
@@ -271,17 +271,17 @@ public class VideoPanelApp : MonoBehaviour
             //     // vidtex.Apply();
             //     Debug.Log("vidtex is not null, loaded bytes");
                 
-            //     _detector.ProcessImage(vidtex, .2f);
-            //     // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
+                _detector.ProcessImage(vidtex, .5f);
+                // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
 
-            //     String allpreds = "";
-            //     foreach (var d in _detector.Detections)
-            //     {  
+                String allpreds = "";
+                foreach (var d in _detector.Detections)
+                {  
                     
-            //         allpreds += _labels[d.classIndex] + " " + d.score + "\n";
-            //     }
-            //     Debug.Log("allpreds: " + allpreds);
-            //     Enqueue(() => SetText(allpreds));
+                    allpreds += _labels[d.classIndex] + " " + d.score + "\n";
+                }
+                Debug.Log("allpreds: " + allpreds);
+                Enqueue(() => SetText(allpreds));
             // }
 
             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
