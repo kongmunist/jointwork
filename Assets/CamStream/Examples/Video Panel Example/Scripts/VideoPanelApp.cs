@@ -74,7 +74,7 @@ public class VideoPanelApp : MonoBehaviour
 
     Texture2D vidtex;
     GameObject HOLOLABEL;
-    GameObject holocol;
+    // GameObject holocol;
     // [SerializeField] Marker _markerPrefab = null;
 
 
@@ -107,7 +107,6 @@ public class VideoPanelApp : MonoBehaviour
 #endif
 
         HOLOLABEL = GameObject.Find("HOLOLABEL");
-        Debug.Log("HOLOLABEL: "+HOLOLABEL);
 
         //Call this in Start() to ensure that the CameraStreamHelper is already "Awake".
         CameraStreamHelper.Instance.GetVideoCaptureAsync(OnVideoCaptureCreated);
@@ -289,12 +288,12 @@ public class VideoPanelApp : MonoBehaviour
             // Here the cameraToWorldMatrix is applied to the camera transform as an alternative to Head Pose,
             // so the position of the displayed video panel is significantly misaligned. If you want to apply a more accurate Head Pose, use MRTK.
 
-           
-                Camera unityCamera = Camera.main;
-                Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
-                Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
-                unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
-                unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
+        
+            Camera unityCamera = Camera.main;
+            Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
+            Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
+            unityCamera.transform.localPosition = localToWorldMatrix.GetColumn(3);
+            unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 
 
     //     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
@@ -309,28 +308,35 @@ public class VideoPanelApp : MonoBehaviour
                 Vector3 org = cameraToWorldMatrix.GetColumn(3);
                 var i = 1;
                 var alldetects = ""; 
-                foreach (var d in _detector.Detections){
-                    // var d = _detector.Detections[i];
-                    alldetects += _labels[d.classIndex] + " " + d.score + "\n";
-                    Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(localToWorldMatrix, projectionMatrix, _resolution, new Vector2(d.x+d.w/2 , d.y+d.h));
-                    moveBallInDirection(org, detectDirectionVec, i);
-                    i++;
-                    if (i == numBalls) break;
-                }
+
+                
+                // foreach (var d in _detector.Detections){
+                //     // var d = _detector.Detections[i];
+                //     alldetects += _labels[d.classIndex] + " " + d.score + "\n";
+                //     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(localToWorldMatrix, projectionMatrix, _resolution, new Vector2(d.x+d.w/2 , d.y+d.h));
+                //     moveBallInDirection(org, detectDirectionVec, i);
+                //     break;
+                //     // i++;
+                //     // if (i == numBalls) break;
+                // }
 
 
-                Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
-                Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-                // org = cameraToWorldMatrix.GetColumn(3);
-                // var inmyface = _balls[0]
-                var inmyface = HOLOLABEL;
-                // var inmyface = holocollection;
-                inmyface.transform.position = org + pp2;
-                inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+                // Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
+                // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+                // // org = cameraToWorldMatrix.GetColumn(3);
+                // // var inmyface = _balls[0]
+                // var inmyface = HOLOLABEL;
+                // // var inmyface = holocollection;
+                // inmyface.transform.position = org + pp2;
+                // inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
 
 
-                TextMesh textObject = inmyface.GetComponent<TextMesh>();
-                textObject.text = "i see u";
+                // TextMesh textObject = inmyface.GetComponent<TextMesh>();
+                // textObject.text = "i see u";
+
+
+
+
 
                 // txtEnglish = holocol.GetChild(0).GetChild(1).gameObject
 
