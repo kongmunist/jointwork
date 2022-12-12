@@ -315,9 +315,12 @@ public class VideoPanelApp : MonoBehaviour
 
 
                 Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-                _balls[0].transform.localPosition = pp2;
+                Vector3 org = cameraToWorldMatrix.GetColumn(3);
+                _balls[0].transform.position = org + pp2;
+
                 // Debug.Log("pp: " + pp2);
-                Enqueue(() => SetText("PP: " + pp.ToString() + "pp2: " + pp2.ToString()));
+                Enqueue(() => SetText( "cam2world 'from'" + cameraToWorldMatrix.GetColumn(3).ToString() +
+                    "PP: " + pp.ToString() + "pp2: " + pp2.ToString()));
 
 
                 // Drawing static sphere in user face
