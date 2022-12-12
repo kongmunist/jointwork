@@ -123,7 +123,7 @@ public class VideoPanelApp : MonoBehaviour
             var ballrender = _balls[i].GetComponent<Renderer>();
             ballrender.material.color = _colors[i];
             // ballrender.material.SetColor("_Color", _colors[i]);
-            _balls[i].transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+            _balls[i].transform.localScale = new Vector3(0.002f,0.002f,0.002f);
         }
 
         
@@ -315,9 +315,9 @@ public class VideoPanelApp : MonoBehaviour
                     
                     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
                     alldetects += cText;
-                    buttonSetText(_balls[i], cText);
+                    buttonSetText(_balls[i], _labels[d.classIndex] + " " + d.score);
 
-                    Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2((int)xloc , (int)yloc));
+                    Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
                     _balls[i].transform.position = org + detectDirectionVec;
                     // moveBallInDirection(org, detectDirectionVec, i);
                     // break;
@@ -327,14 +327,14 @@ public class VideoPanelApp : MonoBehaviour
 
 
 
-                Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
-                Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-                // org = cameraToWorldMatrix.GetColumn(3);
-                // var inmyface = _balls[0]
-                var inmyface = _balls[0];
-                // var inmyface = holocollection;
-                inmyface.transform.position = org + pp2;
-                inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+                // Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
+                // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+                // // org = cameraToWorldMatrix.GetColumn(3);
+                // // var inmyface = _balls[0]
+                // var inmyface = _balls[0];
+                // // var inmyface = holocollection;
+                // inmyface.transform.position = org + pp2;
+                // inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
 
 
                 // TextMesh textObject = inmyface.GetComponent<TextMesh>();
