@@ -66,8 +66,8 @@ public class VideoPanelApp : MonoBehaviour
     // HologramCollection holoco;
     public GameObject buttonPrefab;
     public static int numBalls = 4;
-    public GameObject[] _balls;//=new HologramCollection[numBalls];
-    public Color[] _colors=new Color[]{
+    private GameObject[] _balls;//=new HologramCollection[numBalls];
+    private Color[] _colors=new Color[]{
         new Color(1,0,0,1),
         new Color(0,1,0,1),
         new Color(0,0,1,1),
@@ -106,6 +106,30 @@ public class VideoPanelApp : MonoBehaviour
 
 #endif
 
+        // Create detector objects
+        _detector = new ObjectDetector(_resources);
+        _balls = new GameObject[numBalls];
+        for (var i = 0; i < _balls.Length; i++){
+            // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _balls[i] = Instantiate(buttonPrefab , new Vector3(i*.3f, i*.3f, 1), Quaternion.identity);
+            // var ballrender = _balls[i].GetComponent<Renderer>();
+            // ballrender.material.color = _colors[i];
+            // ballrender.material.SetColor("_Color", _colors[i]);
+            _balls[i].transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+        }
+        Debug.Log("Created balls" + _balls.Length);
+        // Debug.Log("ball 0 color: " + _balls[0].GetComponent<Renderer>().material.color);
+        // Debug.Log("ball 0 id" + _balls[0].GetInstanceID());
+        // Debug.Log("ball 1 id" + _balls[1].GetInstanceID());
+        
+        _colors=new Color[]{
+            new Color(1,0,0,1),
+            new Color(0,1,0,1),
+            new Color(0,0,1,1),
+            new Color(1,1,0,1)
+        };
+
+
         //Call this in Start() to ensure that the CameraStreamHelper is already "Awake".
         CameraStreamHelper.Instance.GetVideoCaptureAsync(OnVideoCaptureCreated);
         //You could also do this "shortcut":
@@ -114,25 +138,7 @@ public class VideoPanelApp : MonoBehaviour
         _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
         _videoPanelUI.meshRenderer.transform.localScale = new Vector3(1, -1, 1);
 
-        // Create detector objects
-        _detector = new ObjectDetector(_resources);
-        _balls = new GameObject[numBalls];
-        for (var i = 0; i < _balls.Length; i++){
-            // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _balls[i] = Instantiate(buttonPrefab , new Vector3(0, 3, 0), Quaternion.identity);
-            var ballrender = _balls[i].GetComponent<Renderer>();
-            ballrender.material.color = _colors[i];
-            // ballrender.material.SetColor("_Color", _colors[i]);
-            _balls[i].transform.localScale = new Vector3(0.002f,0.002f,0.002f);
-        }
 
-        
-        _colors=new Color[]{
-            new Color(1,0,0,1),
-            new Color(0,1,0,1),
-            new Color(0,0,1,1),
-            new Color(1,1,0,1)
-        };
         // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
@@ -296,9 +302,9 @@ public class VideoPanelApp : MonoBehaviour
 
             // Run detector
             count++;
-            if (count == countTrig){
+            if (count % countTrig == 0){
                 setPosition = false;
-                count = 0;
+                // count = 0;
             }
             if (!setPosition){
                  _detector.ProcessImage(vidtex, .2f);
@@ -306,8 +312,9 @@ public class VideoPanelApp : MonoBehaviour
 
                 // For each prediction, get the xy on the image where it's detected 
                 // Also accumulate a big string desrcibin all the detections
-                var i = 0;
-                var alldetects = ""; 
+                int i = 0;
+                string alldetects = ""; 
+                Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
                 foreach (var d in _detector.Detections){
                     // var d = _detector.Detections[i];
                     float xloc = (d.x+d.w/2)*_resolution.width;
@@ -319,6 +326,7 @@ public class VideoPanelApp : MonoBehaviour
 
                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
                     _balls[i].transform.position = org + detectDirectionVec;
+                    // _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
                     // moveBallInDirection(org, detectDirectionVec, i);
                     // break;
                     i++;
@@ -327,7 +335,7 @@ public class VideoPanelApp : MonoBehaviour
 
 
 
-                // Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
+                // 
                 // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
                 // // org = cameraToWorldMatrix.GetColumn(3);
                 // // var inmyface = _balls[0]
@@ -366,7 +374,7 @@ public class VideoPanelApp : MonoBehaviour
                 // _balls[3].transform.position = new Vector3(0, 0, 1); // in middle of the video panel
                 // balls[0] in my head
 
-                Enqueue(() => SetText(alldetects));
+                Enqueue(() => SetText(alldetects + "\nball 0 position:" + _balls[0].transform.position.ToString()));
                 setPosition = true;
             }
             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
