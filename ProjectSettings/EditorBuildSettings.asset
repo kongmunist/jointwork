@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/CamStream/Examples/Projection Example/Projection Example.unity
     guid: c26c9a511df0b8f4890621a3e15abdeb
+  - enabled: 0
+    path: Assets/SampleScene.unity
+    guid: 5a5c7e5deb543bc4c8b365da38ad0efc
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: fffc98f1e055d9940bb20503929a0fe7, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 0663e29384fc09149b5991bf6143c147, type: 2}

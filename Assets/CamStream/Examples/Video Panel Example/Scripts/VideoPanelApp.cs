@@ -65,10 +65,14 @@ public class VideoPanelApp : MonoBehaviour
 
     public GameObject[] _balls=new GameObject[4];
     public Color[] _colors=new Color[]{
-        new Color(1,0,0,0.1f),
-        new Color(0,1,0,0.1f),
-        new Color(0,0,1,0.1f),
-        new Color(1,1,0,0.1f)
+        Color.red,
+        Color.green,
+        Color.blue,
+        Color.yellow
+        // new Color(1,0,0,0.1f),
+        // new Color(0,1,0,0.1f),
+        // new Color(0,0,1,0.1f),
+        // new Color(1,1,0,0.1f)
     };
 
     Texture2D vidtex;
@@ -121,9 +125,6 @@ public class VideoPanelApp : MonoBehaviour
             // Set parent into world coordinates
             _balls[i].transform.parent = null;
         }
-        // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
-        // for (var i = 0; i < _markers.Length; i++)
-        //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
     }
 
     void OnDisable()
@@ -219,10 +220,18 @@ public class VideoPanelApp : MonoBehaviour
 
 
 
+    // Visualizing marker at detector location
+    void moveBallToWorldPos(Vector3 pos, int i){
+        _balls[i].transform.position = pos;
+    }
+
+
 
 
 
     bool setPosition = false;
+    int loopcounter = 0;
+    int loopmax = 30;
 
     void OnFrameSampleAcquired(VideoCaptureSample sample)
     {
@@ -244,23 +253,31 @@ public class VideoPanelApp : MonoBehaviour
         sample.CopyRawImageDataIntoBuffer(_latestImageBytes);
 
 
-        //If you need to get the cameraToWorld matrix for purposes of compositing you can do it like this
-        float[] cameraToWorldMatrixAsFloat;
-        if (sample.TryGetCameraToWorldMatrix(out cameraToWorldMatrixAsFloat) == false)
-        {
-            //return;
-        }
+        // Get the cameraToWorldMatrix and projectionMatrix
+        if (!sample.TryGetCameraToWorldMatrix(out s.camera2WorldMatrix) || !sample.TryGetProjectionMatrix(out s.projectionMatrix))
+            return;
 
-        //If you need to get the projection matrix for purposes of compositing you can do it like this
-        float[] projectionMatrixAsFloat;
-        if (sample.TryGetProjectionMatrix(out projectionMatrixAsFloat) == false)
-        {
-            //return;
-        }
+        Matrix4x4 camera2WorldMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(s.camera2WorldMatrix);
+        Matrix4x4 projectionMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(s.projectionMatrix);
+
+
+        // //If you need to get the cameraToWorld matrix for purposes of compositing you can do it like this
+        // float[] cameraToWorldMatrixAsFloat;
+        // if (sample.TryGetCameraToWorldMatrix(out cameraToWorldMatrixAsFloat) == false)
+        // {
+        //     //return;
+        // }
+
+        // //If you need to get the projection matrix for purposes of compositing you can do it like this
+        // float[] projectionMatrixAsFloat;
+        // if (sample.TryGetProjectionMatrix(out projectionMatrixAsFloat) == false)
+        // {
+        //     //return;
+        // }
 
         // Right now we pass things across the pipe as a float array then convert them back into UnityEngine.Matrix using a utility method
-        Matrix4x4 cameraToWorldMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(cameraToWorldMatrixAsFloat);
-        Matrix4x4 projectionMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(projectionMatrixAsFloat);
+        // Matrix4x4 cameraToWorldMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(cameraToWorldMatrixAsFloat);
+        // Matrix4x4 projectionMatrix = LocatableCameraUtils.ConvertFloatArrayToMatrix4x4(projectionMatrixAsFloat);
 
         Enqueue(() =>
         {
@@ -291,7 +308,8 @@ public class VideoPanelApp : MonoBehaviour
                 // Debug.Log("drew balls: " + p);
 
     //     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
-            if (!setPosition){
+            loopcounter++;
+            if (!loopcounter % loopmax == 0){
                 Vector3 pp = LocatableCameraUtils.PixelCoordToWorldCoord(localToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
                 Enqueue(() => SetText(pp.ToString()));
                 _balls[1].transform.position = pp;
@@ -317,22 +335,21 @@ public class VideoPanelApp : MonoBehaviour
                 _balls[3].transform.position = new Vector3(0, 0, 1);
 
                 setPosition = true;
-            }
-            // Gizmos.color = Color.yellow;
-            // Gizmos.DrawSphere(new Vector3(0, 0, 1), 1);
-// #endif
-                // _detector.ProcessImage(vidtex, .2f);
-                // // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
 
-                // String allpreds = "";
-                // foreach (var d in _detector.Detections)
-                // {  
+                // Run detector
+                _detector.ProcessImage(vidtex, .2f);
+                // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
+
+                String allpreds = "";
+                foreach (var d in _detector.Detections)
+                {  
                     
-                //     allpreds += _labels[d.classIndex] + " " + d.score + "\n";
-                // }
-                // Debug.Log("allpreds: " + allpreds);
-                // Enqueue(() => SetText(allpreds));
-            // }
+                    allpreds += _labels[d.classIndex] + " " + d.score + "\n";
+                }
+                Debug.Log("allpreds: " + allpreds);
+                Enqueue(() => SetText(allpreds));
+            }
+            
 
             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
             // // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
