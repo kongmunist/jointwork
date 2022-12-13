@@ -66,8 +66,8 @@ public class VideoPanelApp : MonoBehaviour
     // HologramCollection holoco;
     public GameObject buttonPrefab;
     public static int numBalls = 4;
-    private GameObject[] _balls;//=new HologramCollection[numBalls];
-    private Color[] _colors=new Color[]{
+    public GameObject[] _balls;//=new HologramCollection[numBalls];
+    public Color[] _colors=new Color[]{
         new Color(1,0,0,1),
         new Color(0,1,0,1),
         new Color(0,0,1,1),
@@ -106,30 +106,6 @@ public class VideoPanelApp : MonoBehaviour
 
 #endif
 
-        // Create detector objects
-        _detector = new ObjectDetector(_resources);
-        _balls = new GameObject[numBalls];
-        for (var i = 0; i < _balls.Length; i++){
-            // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _balls[i] = Instantiate(buttonPrefab , new Vector3(i*.3f, i*.3f, 1), Quaternion.identity);
-            // var ballrender = _balls[i].GetComponent<Renderer>();
-            // ballrender.material.color = _colors[i];
-            // ballrender.material.SetColor("_Color", _colors[i]);
-            _balls[i].transform.localScale = new Vector3(0.02f,0.02f,0.02f);
-        }
-        Debug.Log("Created balls" + _balls.Length);
-        // Debug.Log("ball 0 color: " + _balls[0].GetComponent<Renderer>().material.color);
-        // Debug.Log("ball 0 id" + _balls[0].GetInstanceID());
-        // Debug.Log("ball 1 id" + _balls[1].GetInstanceID());
-        
-        _colors=new Color[]{
-            new Color(1,0,0,1),
-            new Color(0,1,0,1),
-            new Color(0,0,1,1),
-            new Color(1,1,0,1)
-        };
-
-
         //Call this in Start() to ensure that the CameraStreamHelper is already "Awake".
         CameraStreamHelper.Instance.GetVideoCaptureAsync(OnVideoCaptureCreated);
         //You could also do this "shortcut":
@@ -138,7 +114,25 @@ public class VideoPanelApp : MonoBehaviour
         _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
         _videoPanelUI.meshRenderer.transform.localScale = new Vector3(1, -1, 1);
 
+        // Create detector objects
+        _detector = new ObjectDetector(_resources);
+        _balls = new GameObject[numBalls];
+        for (var i = 0; i < _balls.Length; i++){
+            // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _balls[i] = Instantiate(buttonPrefab , new Vector3(0, 3, 0), Quaternion.identity);
+            // var ballrender = _balls[i].GetComponent<Renderer>();
+            // ballrender.material.color = _colors[i];
+            // ballrender.material.SetColor("_Color", _colors[i]);
+            _balls[i].transform.localScale = new Vector3(0.2f,0.2f,0.2f);
+        }
 
+        
+        _colors=new Color[]{
+            new Color(1,0,0,1),
+            new Color(0,1,0,1),
+            new Color(0,0,1,1),
+            new Color(1,1,0,1)
+        };
         // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
         // for (var i = 0; i < _markers.Length; i++)
         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
@@ -302,9 +296,9 @@ public class VideoPanelApp : MonoBehaviour
 
             // Run detector
             count++;
-            if (count % countTrig == 0){
+            if (count == countTrig){
                 setPosition = false;
-                // count = 0;
+                count = 0;
             }
             if (!setPosition){
                  _detector.ProcessImage(vidtex, .2f);
@@ -312,13 +306,15 @@ public class VideoPanelApp : MonoBehaviour
 
                 // For each prediction, get the xy on the image where it's detected 
                 // Also accumulate a big string desrcibin all the detections
-                int i = 0;
-                string alldetects = ""; 
+                var i = 0;
+                var alldetects = ""; 
                 Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
                 foreach (var d in _detector.Detections){
                     // var d = _detector.Detections[i];
-                    float xloc = (d.x+d.w/2)*_resolution.width;
-                    float yloc = (d.y+d.h/2)*_resolution.height;
+                    // float xloc = (d.x+d.w/2)*_resolution.width;
+                    // float yloc = (d.y+d.h/2)*_resolution.height;
+                    float xloc = (d.x)*_resolution.width;
+                    float yloc = (d.y + d.h/2)*_resolution.height;
                     
                     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
                     alldetects += cText;
@@ -326,16 +322,35 @@ public class VideoPanelApp : MonoBehaviour
 
                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
                     _balls[i].transform.position = org + detectDirectionVec;
-                    // _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+                    _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
                     // moveBallInDirection(org, detectDirectionVec, i);
                     // break;
                     i++;
                     if (i == numBalls) break;
                 }
 
+                
+                // foreach (var d in _detector.Detections){
+                //     // var d = _detector.Detections[i];
+                //     float xloc = (d.x+d.w/2)*_resolution.width;
+                //     float yloc = (d.y+d.h/2)*_resolution.height;
+                    
+                //     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
+                //     alldetects += cText;
+                //     buttonSetText(_balls[i], _labels[d.classIndex] + " " + d.score);
+
+                //     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
+                //     _balls[i].transform.position = org + detectDirectionVec;
+                //     // _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+                //     // moveBallInDirection(org, detectDirectionVec, i);
+                //     // break;
+                //     i++;
+                //     if (i == numBalls) break;
+                // }
 
 
-                // 
+
+                // Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
                 // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
                 // // org = cameraToWorldMatrix.GetColumn(3);
                 // // var inmyface = _balls[0]
@@ -374,7 +389,7 @@ public class VideoPanelApp : MonoBehaviour
                 // _balls[3].transform.position = new Vector3(0, 0, 1); // in middle of the video panel
                 // balls[0] in my head
 
-                Enqueue(() => SetText(alldetects + "\nball 0 position:" + _balls[0].transform.position.ToString()));
+                Enqueue(() => SetText(alldetects));
                 setPosition = true;
             }
             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
@@ -395,7 +410,6 @@ public class VideoPanelApp : MonoBehaviour
     }
 }
 
-
 // //  
 // // Copyright (c) 2017 Vulcan, Inc. All rights reserved.  
 // // Licensed under the Apache 2.0 license. See LICENSE file in the project root for full license information.
@@ -407,7 +421,7 @@ public class VideoPanelApp : MonoBehaviour
 // using System.Collections.Generic;
 // using Klak.TestTools;
 // using YoloV4Tiny;
-
+// using TMPro;
 
 // #if WINDOWS_UWP && XR_PLUGIN_OPENXR
 // using Windows.Perception.Spatial;
@@ -447,10 +461,10 @@ public class VideoPanelApp : MonoBehaviour
 //     // [SerializeField] ImageSource _source = null;
 //     // [SerializeField, Range(0, 1)] float _threshold = 0.5f;
 //     #region Editable attributes
+//     [SerializeField] ImageSource _source = null;
 //     [SerializeField] ResourceSet _resources = null;
 //     //[SerializeField] GameObject _worldparent = null;
 //     #endregion
-
     
 //     public static string[] _labels = new[]
 //     {
@@ -461,19 +475,19 @@ public class VideoPanelApp : MonoBehaviour
 //         "Sheep", "Sofa", "Train", "TV"
 //     };
 
+//     // HologramCollection holoco;
+//     public GameObject buttonPrefab;
 //     public static int numBalls = 4;
-//     public GameObject[] _balls=new GameObject[numBalls];
-//     public Color[] _colors=new Color[]{
+//     private GameObject[] _balls;//=new HologramCollection[numBalls];
+//     private Color[] _colors=new Color[]{
 //         new Color(1,0,0,1),
 //         new Color(0,1,0,1),
 //         new Color(0,0,1,1),
 //         new Color(1,1,0,1)
 //     };
 
+//     // private GameObject HOLOLABEL;
 //     Texture2D vidtex;
-//     GameObject HOLOLABEL;
-//     // GameObject holocol;
-//     // [SerializeField] Marker _markerPrefab = null;
 
 
 
@@ -504,7 +518,29 @@ public class VideoPanelApp : MonoBehaviour
 
 // #endif
 
-//         HOLOLABEL = GameObject.Find("HOLOLABEL");
+//         // Create detector objects
+//         _detector = new ObjectDetector(_resources);
+//         _balls = new GameObject[numBalls];
+//         for (var i = 0; i < _balls.Length; i++){
+//             // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+//             _balls[i] = Instantiate(buttonPrefab , new Vector3(i*.3f, i*.3f, 1), Quaternion.identity);
+//             // var ballrender = _balls[i].GetComponent<Renderer>();
+//             // ballrender.material.color = _colors[i];
+//             // ballrender.material.SetColor("_Color", _colors[i]);
+//             _balls[i].transform.localScale = new Vector3(0.02f,0.02f,0.02f);
+//         }
+//         Debug.Log("Created balls" + _balls.Length);
+//         // Debug.Log("ball 0 color: " + _balls[0].GetComponent<Renderer>().material.color);
+//         // Debug.Log("ball 0 id" + _balls[0].GetInstanceID());
+//         // Debug.Log("ball 1 id" + _balls[1].GetInstanceID());
+        
+//         _colors=new Color[]{
+//             new Color(1,0,0,1),
+//             new Color(0,1,0,1),
+//             new Color(0,0,1,1),
+//             new Color(1,1,0,1)
+//         };
+
 
 //         //Call this in Start() to ensure that the CameraStreamHelper is already "Awake".
 //         CameraStreamHelper.Instance.GetVideoCaptureAsync(OnVideoCaptureCreated);
@@ -514,19 +550,10 @@ public class VideoPanelApp : MonoBehaviour
 //         _videoPanelUI = GameObject.FindObjectOfType<VideoPanel>();
 //         _videoPanelUI.meshRenderer.transform.localScale = new Vector3(1, -1, 1);
 
-        
-//         // holocol = GameObject.Find("HologramCollection");
 
-//         // Create detector objects
-//         _detector = new ObjectDetector(_resources);
-
-//         _balls=new GameObject[numBalls];
-//         for (var i = 0; i < _balls.Length; i++){
-//             _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Cube);
-//             var ballrender = _balls[i].GetComponent<Renderer>();
-//             ballrender.material.color = _colors[i];
-//             _balls[i].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
-//         }
+//         // vidtex = new Texture2D(2,2, TextureFormat.BGRA32, false);
+//         // for (var i = 0; i < _markers.Length; i++)
+//         //     _markers[i] = Instantiate(_markerPrefab, _preview.transform);
 //     }
 
 //     void OnDisable()
@@ -622,15 +649,11 @@ public class VideoPanelApp : MonoBehaviour
 
 
 
-//             //  Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
-//             //     Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-//             //     Vector3 org = cameraToWorldMatrix.GetColumn(3);
-//             //     _balls[0].transform.position = org + pp2;
-//             //     _balls[0].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
 
-//     // Visualizing marker at detector location
-//     void moveBallInDirection(Vector3 origin, Vector3 dir, int i){
-//         _balls[i].transform.position = origin + dir;
+//     void buttonSetText(GameObject button, string text){
+//         TextMeshPro text_english = button.transform.GetChild(0).GetChild(1).gameObject.GetComponent<TextMeshPro>();
+//         TextMeshPro text_german = button.transform.GetChild(0).GetChild(2).gameObject.GetComponent<TextMeshPro>();
+//         text_english.SetText(text);
 //     }
 
 //     bool setPosition = false;
@@ -679,16 +702,7 @@ public class VideoPanelApp : MonoBehaviour
 //         {
 //             vidtex.LoadRawTextureData(_latestImageBytes);
 //             vidtex.Apply();
-//             // _videoPanelUI.SetBytes(_latestImageBytes);
 //             _videoPanelUI.setTexture(vidtex);
-
-// // #if XR_PLUGIN_WINDOWSMR || XR_PLUGIN_OPENXR
-//             // It appears that the Legacy built-in XR environment automatically applies the Holelens Head Pose to Unity camera transforms,
-//             // but not to the new XR system (XR plugin management) environment.
-//             // Here the cameraToWorldMatrix is applied to the camera transform as an alternative to Head Pose,
-//             // so the position of the displayed video panel is significantly misaligned. If you want to apply a more accurate Head Pose, use MRTK.
-
-        
 //             Camera unityCamera = Camera.main;
 //             Matrix4x4 invertZScaleMatrix = Matrix4x4.Scale(new Vector3(1, 1, -1));
 //             Matrix4x4 localToWorldMatrix = cameraToWorldMatrix * invertZScaleMatrix;
@@ -696,23 +710,35 @@ public class VideoPanelApp : MonoBehaviour
 //             unityCamera.transform.localRotation = Quaternion.LookRotation(localToWorldMatrix.GetColumn(2), localToWorldMatrix.GetColumn(1));
 
 
-//     //     public static Vector3 PixelCoordToWorldCoord(Matrix4x4 cameraToWorldMatrix, Matrix4x4 projectionMatrix, HoloLensCameraStream.Resolution cameraResolution, Vector2 pixelCoordinates)
+
+
+//             // Run detector
 //             count++;
 //             if (count % countTrig == 0){
 //                 setPosition = false;
 //                 // count = 0;
 //             }
 //             if (!setPosition){
-//                 _detector.ProcessImage(vidtex, .2f);
-
+//                  _detector.ProcessImage(vidtex, .2f);
 //                 Vector3 org = cameraToWorldMatrix.GetColumn(3);
-//                 var i = 0;
-//                 var alldetects = ""; 
+
+//                 // For each prediction, get the xy on the image where it's detected 
+//                 // Also accumulate a big string desrcibin all the detections
+//                 int i = 0;
+//                 string alldetects = ""; 
+//                 Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
 //                 foreach (var d in _detector.Detections){
 //                     // var d = _detector.Detections[i];
-//                     alldetects += _labels[d.classIndex] + " " + d.score + "\n";
-//                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(localToWorldMatrix, projectionMatrix, _resolution, new Vector2(d.x+d.w/2 , d.y+d.h));
+//                     float xloc = (d.x+d.w/2)*_resolution.width;
+//                     float yloc = (d.y+d.h/2)*_resolution.height;
+                    
+//                     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
+//                     alldetects += cText;
+//                     buttonSetText(_balls[i], _labels[d.classIndex] + " " + d.score);
+
+//                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
 //                     _balls[i].transform.position = org + detectDirectionVec;
+//                     // _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
 //                     // moveBallInDirection(org, detectDirectionVec, i);
 //                     // break;
 //                     i++;
@@ -720,47 +746,49 @@ public class VideoPanelApp : MonoBehaviour
 //                 }
 
 
-//                 Vector3 inverseNormal = -cameraToWorldMatrix.GetColumn(2);
-//                 Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
-//                 // org = cameraToWorldMatrix.GetColumn(3);
-//                 // var inmyface = _balls[0]
-//                 var inmyface = HOLOLABEL;
-//                 // var inmyface = holocollection;
-//                 inmyface.transform.position = org + pp2;
-//                 inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+
+//                 // 
+//                 // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+//                 // // org = cameraToWorldMatrix.GetColumn(3);
+//                 // // var inmyface = _balls[0]
+//                 // var inmyface = _balls[0];
+//                 // // var inmyface = holocollection;
+//                 // inmyface.transform.position = org + pp2;
+//                 // inmyface.transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
 
 
-//                 TextMesh textObject = inmyface.GetComponent<TextMesh>();
-//                 textObject.text = "i see u " + count.ToString();
+//                 // TextMesh textObject = inmyface.GetComponent<TextMesh>();
+//                 // textObject.text = "i see u " + count.ToString();
+
+//                 // Vector3 pp2 = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(_resolution.width/2, _resolution.height/2));
+//                 // Vector3 org = cameraToWorldMatrix.GetColumn(3);
+//                 // _balls[0].transform.position = org + pp2;
 
 
 
 
 
-//                 // txtEnglish = holocol.GetChild(0).GetChild(1).gameObject
+
 
 //                 // Debug.Log("pp: " + pp2);
+//                 // Enqueue(() => SetText( "cam2world 'from'" + cameraToWorldMatrix.GetColumn(3).ToString() +
+//                 //     "PP: " + pp.ToString() + "pp2: " + pp2.ToString()));
 
-//                 // Enqueue(() => SetText( "cam2world 'from'" + org.ToString() +
-//                 //     "\npp2: " + pp2.ToString()));
-//                 Enqueue(() => SetText(alldetects));
+
+//                 // Drawing static sphere in user face
+//                 // _balls[2].transform.position = Camera.main.transform.position + Camera.main.transform.forward * -1;
+//                 // Gizmos.color = Color.blue;
+//                 // // Gizmos.DrawSphere(Camera.main.transform.position, 1);
+//                 // Gizmos.DrawSphere(Camera.main.transform.position + Camera.main.transform.forward * 2, 1);
+
+
+//                 // Draw static sphere in world
+//                 // _balls[3].transform.position = new Vector3(0, 0, 1); // in middle of the video panel
+//                 // balls[0] in my head
+
+//                 Enqueue(() => SetText(alldetects + "\nball 0 position:" + _balls[0].transform.position.ToString()));
 //                 setPosition = true;
-//                 }
-            
-
-//             //     _detector.ProcessImage(vidtex, .2f);
-//             //     // Debug.Log("detector processed image, got " + _detector.Detections + " detections");
-
-//             //     String allpreds = "";
-//             //     foreach (var d in _detector.Detections)
-//             //     {  
-                    
-//             //         allpreds += _labels[d.classIndex] + " " + d.score + "\n";
-//             //     }
-//             //     Debug.Log("allpreds: " + allpreds);
-//             //     Enqueue(() => SetText(allpreds));
-//             // }
-
+//             }
 //             // Debug.Log("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength);
 //             // // Enqueue(() => SetText("Got frame: " + sample.FrameWidth + "x" + sample.FrameHeight + " | " + sample.pixelFormat + " | " + sample.dataLength));
 
@@ -778,3 +806,4 @@ public class VideoPanelApp : MonoBehaviour
 //         }
 //     }
 // }
+
