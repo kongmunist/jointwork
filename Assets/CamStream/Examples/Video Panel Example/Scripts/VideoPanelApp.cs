@@ -63,6 +63,24 @@ public class VideoPanelApp : MonoBehaviour
         "Sheep", "Sofa", "Train", "TV"
     };
 
+    public static string[] _labels_de = new[]
+    {
+        "Flugzeug", "Fahrrad", "Vogel", "Boot",
+        "Flasche", "Bus", "Auto", "Katze",
+        "Stuhl", "Kuh", "Tisch", "Hund",
+        "Pferd", "Motorrad", "Person", "Pflanze",
+        "Schaf", "Sofa", "Zug", "Fernseher"
+    };
+
+    public static string[] _labels_malay = new[]
+    {
+        "Pesawat", "Bicycle", "Burung", "Kapal",
+        "Botol", "Bas", "Kereta", "Kucing",
+        "Tudung", "Sapi", "Meja", "Anjing",
+        "Kuda", "Motor", "Orang", "Tumbuhan",
+        "Domba", "Sofa", "Kereta Api", "TV"
+    };
+
     // HologramCollection holoco;
     public GameObject buttonPrefab;
     public static int numBalls = 4;
@@ -120,10 +138,7 @@ public class VideoPanelApp : MonoBehaviour
         for (var i = 0; i < _balls.Length; i++){
             // _balls[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             _balls[i] = Instantiate(buttonPrefab , new Vector3(0, 3, 0), Quaternion.identity);
-            // var ballrender = _balls[i].GetComponent<Renderer>();
-            // ballrender.material.color = _colors[i];
-            // ballrender.material.SetColor("_Color", _colors[i]);
-            _balls[i].transform.localScale = new Vector3(0.2f,0.2f,0.2f);
+            _balls[i].transform.localScale = new Vector3(.5f,.5f,.5f);
         }
 
         
@@ -192,7 +207,9 @@ public class VideoPanelApp : MonoBehaviour
 
 #endif
 
-        _resolution = CameraStreamHelper.Instance.GetLowestResolution();
+        // _resolution = CameraStreamHelper.Instance.GetLowestResolution();
+        _resolution = CameraStreamHelper.Instance.GetHighestResolution();
+        // _resolution = CameraStreamHelper
         float frameRate = CameraStreamHelper.Instance.GetHighestFrameRate(_resolution);
         videoCapture.FrameSampleAcquired += OnFrameSampleAcquired;
 
@@ -240,7 +257,7 @@ public class VideoPanelApp : MonoBehaviour
 
     bool setPosition = false;
     int count = 0;
-    int countTrig = 90;
+    int countTrig = 30*4;
 
     void OnFrameSampleAcquired(VideoCaptureSample sample)
     {
@@ -314,7 +331,7 @@ public class VideoPanelApp : MonoBehaviour
                     // float xloc = (d.x+d.w/2)*_resolution.width;
                     // float yloc = (d.y+d.h/2)*_resolution.height;
                     float xloc = (d.x)*_resolution.width;
-                    float yloc = (d.y + d.h/2)*_resolution.height;
+                    float yloc = (1.0f-d.y)*_resolution.height;
                     
                     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
                     alldetects += cText;
@@ -323,10 +340,15 @@ public class VideoPanelApp : MonoBehaviour
                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
                     _balls[i].transform.position = org + detectDirectionVec;
                     _balls[i].transform.rotation = Quaternion.LookRotation(inverseNormal, cameraToWorldMatrix.GetColumn(1));
+                    _balls[i].SetActive(true);
+                    // _balls[i].transform.rotation = Quaternion.LookRotation(detectDirectionVec, cameraToWorldMatrix.GetColumn(1));
                     // moveBallInDirection(org, detectDirectionVec, i);
                     // break;
                     i++;
                     if (i == numBalls) break;
+                }
+                for (; i < numBalls; i++){
+                    _balls[i].SetActive(false);
                 }
 
                 
