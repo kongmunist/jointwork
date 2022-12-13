@@ -335,7 +335,9 @@ public class VideoPanelApp : MonoBehaviour
                     
                     string cText = _labels[d.classIndex] + " " + d.score + " " + xloc + " " + yloc + "\n";
                     alldetects += cText;
-                    buttonSetText(_balls[i], _labels[d.classIndex] + " " + d.score);
+
+                    string labelText = _labels[d.classIndex] + "\n" + _labels_de[d.classIndex];
+                    buttonSetText(_balls[i], labelText);
 
                     Vector3 detectDirectionVec = LocatableCameraUtils.PixelCoordToWorldCoord(cameraToWorldMatrix, projectionMatrix, _resolution, new Vector2(xloc , yloc));
                     _balls[i].transform.position = org + detectDirectionVec;
