@@ -1,0 +1,31 @@
+0. Make sure keijiro code runs on individual frames in a way that's easy to plug new frames into
+ - it does
+0.5: get the yolov4 runnning on Andy computer
+1. get video running from hololens and displaying to cube/plane
+ - harder than expected. I think we can use this library (https://github.com/EnoxSoftware/HoloLensCameraStream)
+ - Alternative here: https://forums.hololens.com/discussion/1032/accessing-the-raw-video-stream-in-unity-not-saving-to-a-file
+2. frido - recognition on a cube
+ - does it on the model, just pass a texture
+2.5 get debug output to show up
+
+2.6 get model into the camera file (loaded, not running)
+2.7 get model inferenceing on static image
+2.8 get model inferencing on real camera image
+
+3.0 get markers placed down programmatically using the camerastream pixelcoords2world - they're really laggy, probably due to being placed in the user's head space
+3.01 standalone button works
+
+3.02 forgot which way to place the markers
+3.1 get markers placed down where the detector sees objects - make sure the user sees them in the right place
+
+
+3.2 get text placed down programmatically instead of markers
+
+3.3 get video streaming pane removed from view of viewer
+
+<-------------------- YOU ARE HERE
+
+
+
+3.4 on user interaction (button or gesture), labelled object reveals more information
+3.5 fix run speed of detector
